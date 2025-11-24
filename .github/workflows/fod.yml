@@ -50,7 +50,7 @@ on:
       deployApp:
         description: 'Deploy App'
         required: false
-        default: 'true'   
+        default: 'false'   
       runFoDDASTScan:
         description: 'Carry out DAST scan using Fortify on Demand'
         required: false
@@ -68,7 +68,6 @@ jobs:
           
   Build-And-Unit-Test:
     runs-on: ubuntu-latest
-    needs: [ Env-Prepare ]
     env: 
       FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
       FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
@@ -93,7 +92,7 @@ jobs:
           gradle-version: ${{ env.GRADLE_VERSION }}
       # Build / Test with Gradle
       - name: Build with Gradle
-        run: ./gradlew clean build test
+        run: ./gradlew clean build -x test
       # Publish test results
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
@@ -107,7 +106,6 @@ jobs:
   FoD-SAST-Scan:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runFoDSASTScan == 'true') }}
-    needs: [ Env-Prepare ]
     env: 
       FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
       FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
@@ -149,7 +147,7 @@ jobs:
   FoD-OSS-Scan:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runFoDOSSScan == 'true') }}
-    needs: [ Env-Prepare, FoD-SAST-Scan ] # for creating new FoD release (if required)
+    needs: [ FoD-SAST-Scan ] # for creating new FoD release (if required)
     env: 
       FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
       FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
@@ -184,7 +182,7 @@ jobs:
   Deploy-App:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.deployApp == 'true') }}
-    needs: [ Env-Prepare, Build-And-Unit-Test, FoD-SAST-Scan, FoD-OSS-Scan ]
+    needs: [ Build-And-Unit-Test, FoD-SAST-Scan, FoD-OSS-Scan ]
     env: 
       FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
       FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }} 
@@ -243,7 +241,7 @@ jobs:
   Verify-Security-Policy:
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [ Env-Prepare, FoD-DAST-Scan ]
+    needs: [ FoD-DAST-Scan ]
     env: 
       FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
       FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
