@@ -31,7 +31,7 @@ on:
     inputs:
       runScanCentralSASTScan:
         description: 'Carry out SAST scan using Fortify ScanCentral'
-        required: false
+        required: true
         default: 'false'
       runScanCentralDASTScan:
         description: 'Carry out DAST scan using Fortify ScanCentral'
