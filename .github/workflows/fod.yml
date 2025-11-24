@@ -68,9 +68,6 @@ jobs:
           
   Build-And-Unit-Test:
     runs-on: ubuntu-latest
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,8 +76,6 @@ jobs:
           echo "JAVA_VERSION=${{ env.JAVA_VERSION }}"
           echo "GRADLE_VERSION=${{ env.GRADLE_VERSION }}"
           echo "BASE_DIR=${{ env.BASE_DIR }}"
-          echo "FOD_RELEASE=${{ env.FOD_RELEASE }}"
-          echo "FOD_PARENT_RELEASE=${{ env.FOD_PARENT_RELEASE }}"
       # Setup JDK 17 on host
       - uses: actions/setup-java@v4
         with:
@@ -106,9 +101,6 @@ jobs:
   FoD-SAST-Scan:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runFoDSASTScan == 'true') }}
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -132,6 +124,7 @@ jobs:
           #FOD_PASSWORD: ${{secrets.FOD_PAT}}
           FOD_CLIENT_ID: ${{secrets.FOD_CLIENT_ID}}
           FOD_CLIENT_SECRET: ${{secrets.FOD_CLIENT_SECRET}}
+          FOD_RELEASE: ${{vars.FOD_RELEASE}}
           # FOD_LOGIN_EXTRA_OPTS: --socket-timeout=60s
           #FOD_RELEASE: ${{ format('{0}{1}:{2}', env.DEFAULT_APP_NAME, vars.FORTIFY_APP_NAME_POSTFIX, github.ref_name) }}
           DO_SETUP: true
@@ -148,9 +141,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runFoDOSSScan == 'true') }}
     needs: [ FoD-SAST-Scan ] # for creating new FoD release (if required)
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -178,14 +168,13 @@ jobs:
           FOD_CLIENT_ID: ${{ secrets.FOD_CLIENT_ID }}
           FOD_CLIENT_SECRET: ${{ secrets.FOD_CLIENT_SECRET }}
           PACKAGE_FILE: "fortifypackage.zip"
+          FOD_RELEASE: ${{ vars.FOD_RELEASE }}
+
 
   Deploy-App:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.deployApp == 'true') }}
     needs: [ Build-And-Unit-Test, FoD-SAST-Scan, FoD-OSS-Scan ]
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }} 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -211,10 +200,7 @@ jobs:
   FoD-DAST-Scan:
     runs-on: ubuntu-latest
     if: ${{ (github.ref_name == github.event.repository.default_branch) && (github.event.inputs.runFoDDASTScan == 'true') }}
-    needs: [ Env-Prepare, Deploy-App ]
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
+    needs: [ Deploy-App ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -236,15 +222,12 @@ jobs:
           FOD_API_URI: ${{ vars.FOD_API_URL }}
           FOD_CLIENT_ID: ${{ secrets.FOD_CLIENT_ID }}
           FOD_CLIENT_SECRET: ${{ secrets.FOD_CLIENT_SECRET }}
-          FOD_RELEASE: ${{ env.FOD_RELEASE }}
+          FOD_RELEASE: ${{ vars.FOD_RELEASE }}
 
   Verify-Security-Policy:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs: [ FoD-DAST-Scan ]
-    env: 
-      FOD_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ needs.Env-Prepare.outputs.FOD_PARENT_RELEASE }}
     continue-on-error: true # allow the workflow to continue even if this job fails
     steps:
       - name: Checkout
@@ -266,7 +249,7 @@ jobs:
           FOD_API_URI: ${{ vars.FOD_API_URL }}
           FOD_CLIENT_ID: ${{ secrets.FOD_CLIENT_ID }}
           FOD_CLIENT_SECRET: ${{ secrets.FOD_CLIENT_SECRET }}
-          FOD_RELEASE: ${{ env.FOD_RELEASE }}
+          FOD_RELEASE: ${{ vars.FOD_RELEASE }}
 
   #Release-To-Prod:
   #  runs-on: ubuntu-latest
