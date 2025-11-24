@@ -65,27 +65,6 @@ env:
   BASE_DIR: "."
 
 jobs:
-
-  Env-Prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      FOD_RELEASE: ${{ steps.commands.outputs.FOD_RELEASE }}
-      FOD_PARENT_RELEASE: ${{ steps.commands.outputs.FOD_PARENT_RELEASE }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up environment variables
-        id: commands
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "Running in a pull request pipeline ..."
-            echo "FOD_RELEASE=${{ env.DEFAULT_APP_NAME }}${{ vars.FOD_APP_NAME_POSTFIX }}:merge-to-${{ github.base_ref }}#PR${{ github.event.number }}" >> $GITHUB_OUTPUT
-            echo "FOD_PARENT_RELEASE=${{ env.DEFAULT_APP_NAME }}${{ vars.FOD_APP_NAME_POSTFIX }}:${{ github.head_ref }}" >> $GITHUB_OUTPUT
-          else
-            echo "Running in a branch pipeline ..."
-            echo "FOD_RELEASE=${{ env.DEFAULT_APP_NAME }}${{ vars.FOD_APP_NAME_POSTFIX }}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "FOD_PARENT_RELEASE=${{ env.DEFAULT_APP_NAME }}${{ vars.FOD_APP_NAME_POSTFIX }}:${{ env.DEFAULT_PARENT_RELEASE_NAME }}" >> $GITHUB_OUTPUT
-          fi
           
   Build-And-Unit-Test:
     runs-on: ubuntu-latest
