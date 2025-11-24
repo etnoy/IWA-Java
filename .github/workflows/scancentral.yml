@@ -31,8 +31,8 @@ on:
     inputs:
       runScanCentralSASTScan:
         description: 'Carry out SAST scan using Fortify ScanCentral'
-        required: true
-        default: 'false'
+        required: false
+        default: 'true'
       runScanCentralDASTScan:
         description: 'Carry out DAST scan using Fortify ScanCentral'
         required: false
@@ -40,7 +40,7 @@ on:
       deployApp:
         description: 'Deploy App'
         required: false
-        default: 'true'            
+        default: 'false'            
 
 # Global environment variables
 env:
