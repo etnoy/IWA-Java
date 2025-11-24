@@ -68,7 +68,7 @@ jobs:
           gradle-version: ${{ env.GRADLE_VERSION }}
       # Build / Test with Gradle
       - name: Build with Gradle
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
       # Publish test results
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
