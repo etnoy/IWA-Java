@@ -104,7 +104,7 @@ jobs:
           fetch-depth: 2
       - name: Add hosts to /etc/hosts
         run: |
-          sudo echo "54.166.103.253 https://fortify.cyberxdemo.com/" | sudo tee -a /etc/hosts
+          sudo echo "54.166.103.253 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
       - name: Fortify App and Release Name
         id: fortify-app-and-rel-name
         uses: fortify-presales/github-actions/fortify-app-and-release-name@main
@@ -215,7 +215,7 @@ jobs:
           fetch-depth: 2
       - name: Add hosts to /etc/hosts
         run: |
-          sudo echo "54.166.103.253 https://fortify.cyberxdemo.com/" | sudo tee -a /etc/hosts
+          sudo echo "54.166.103.253 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
       - name: Fortify App and Release Name
         id: fortify-app-and-rel-name
         uses: fortify-presales/github-actions/fortify-app-and-release-name@main
